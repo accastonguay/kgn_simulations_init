@@ -1,0 +1,764 @@
+<DynaMind>
+	<Info Version="0.5"/>
+<DynaMindCore>
+	<Settings>
+		<EPSG value="32755"/>
+		<WorkingDir value="/tmp/dynamind"/>
+		<KeepSystems value="0"/>
+	</Settings>
+	<Nodes>
+		<RootNode>
+			<UUID value="0"/>
+		</RootNode>
+		<Node>
+			<ClassName value="GDALCreateCentroids"/>
+			<UUID value="33210320"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="leading_view">
+				<![CDATA[grid]]>
+			</parameter>
+			<parameter name="centroid_view">
+				<![CDATA[center]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="DM_CreateNeighbourhoodNetwork"/>
+			<UUID value="34900816"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="view_name">
+				<![CDATA[grid]]>
+			</parameter>
+			<parameter name="weight">
+				<![CDATA[avgelev]]>
+			</parameter>
+			<parameter name="node_view_name">
+				<![CDATA[center]]>
+			</parameter>
+			<parameter name="neigbourhood_table">
+				<![CDATA[ng_grid]]>
+			</parameter>
+			<parameter name="network_name">
+				<![CDATA[flow]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="DM_ValueFromRaster"/>
+			<UUID value="35004112"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="view_name">
+				<![CDATA[center]]>
+			</parameter>
+			<parameter name="attribute_name">
+				<![CDATA[value]]>
+			</parameter>
+			<parameter name="raster_file">
+				<![CDATA[../../../media/sf_ubuntu_shared/Monash/Kingston/kgn_Filled_dem.tif]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="GDALCreateNeighbourhoodTable"/>
+			<UUID value="32752064"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="view_name">
+				<![CDATA[grid]]>
+			</parameter>
+			<parameter name="neigh_name">
+				<![CDATA[ng_grid]]>
+			</parameter>
+			<parameter name="only_share_edge">
+				<![CDATA[0]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="DM_SQliteCalculator"/>
+			<UUID value="32437888"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="attribute">
+				<![CDATA[grid.value]]>
+			</parameter>
+			<parameter name="attribute_type">
+				<![CDATA[DOUBLE]]>
+			</parameter>
+			<parameter name="query">
+				<![CDATA[UPDATE grid SET value=(SELECT value from center where center.grid_id = grid.ogc_fid)]]>
+			</parameter>
+			<parameter name="variables">
+				<![CDATA[]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="GDALExtractNodes"/>
+			<UUID value="33775232"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="view_name">
+				<![CDATA[flow]]>
+			</parameter>
+			<parameter name="node_name">
+				<![CDATA[node]]>
+			</parameter>
+			<parameter name="tolerance">
+				<![CDATA[0.01]]>
+			</parameter>
+			<parameter name="is_downstream_upstream">
+				<![CDATA[0]]>
+			</parameter>
+			<parameter name="add_height">
+				<![CDATA[0]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="GDALJoinNearestNeighbour"/>
+			<UUID value="33233840"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="leadingViewName">
+				<![CDATA[center]]>
+			</parameter>
+			<parameter name="linkViewName">
+				<![CDATA[node]]>
+			</parameter>
+			<parameter name="max_distance">
+				<![CDATA[100]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="DM_GaphSum"/>
+			<UUID value="36676064"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="view_name">
+				<![CDATA[flow]]>
+			</parameter>
+			<parameter name="attribute_read">
+				<![CDATA[val]]>
+			</parameter>
+			<parameter name="attribute_write">
+				<![CDATA[val_sum]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="DM_SQliteCalculator"/>
+			<UUID value="33190496"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="attribute">
+				<![CDATA[flow.val]]>
+			</parameter>
+			<parameter name="attribute_type">
+				<![CDATA[DOUBLE]]>
+			</parameter>
+			<parameter name="query">
+				<![CDATA[UPDATE flow  SET val = (SELECT graph_val from node where node.node_id = flow.start_id)]]>
+			</parameter>
+			<parameter name="variables">
+				<![CDATA[]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="DM_SQliteCalculator"/>
+			<UUID value="32767856"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="attribute">
+				<![CDATA[node.graph_val]]>
+			</parameter>
+			<parameter name="attribute_type">
+				<![CDATA[DOUBLE]]>
+			</parameter>
+			<parameter name="query">
+				<![CDATA[UPDATE node SET graph_val= (SELECT count(*) from center WHERE center.node_id = node.node_id)]]>
+			</parameter>
+			<parameter name="variables">
+				<![CDATA[]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="DM_SQliteCalculator"/>
+			<UUID value="34289088"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="attribute">
+				<![CDATA[center.value]]>
+			</parameter>
+			<parameter name="attribute_type">
+				<![CDATA[DOUBLE]]>
+			</parameter>
+			<parameter name="query">
+				<![CDATA[UPDATE center SET value = (SELECT CASE 
+WHEN  center.OGC_FID = 423  
+THEN  2.82
+WHEN  center.OGC_FID = 124  
+THEN  2.41
+WHEN  center.OGC_FID = 211  
+THEN  1.73
+WHEN  center.OGC_FID = 420  
+THEN  1.72
+WHEN  center.OGC_FID = 93  
+THEN  1.26
+WHEN  center.OGC_FID = 155  
+THEN  1.25
+WHEN  center.OGC_FID = 210  
+THEN  1.73
+WHEN  center.OGC_FID = 385  
+THEN  1.52
+WHEN  center.OGC_FID = 308  
+THEN  1.52
+WHEN  center.OGC_FID = 386  
+THEN  1.51
+
+ELSE  center.value 
+END FROM city)]]>
+			</parameter>
+			<parameter name="variables">
+				<![CDATA[]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="GDALImportData"/>
+			<UUID value="31403744"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="source">
+				<![CDATA[../../../../../../data/kgn_blocks.sqlite]]>
+			</parameter>
+			<parameter name="layer_name">
+				<![CDATA[kgn_blocks]]>
+			</parameter>
+			<parameter name="view_name">
+				<![CDATA[grid]]>
+			</parameter>
+			<parameter name="import_attribute_as">
+				<![CDATA[]]>
+			</parameter>
+			<parameter name="append">
+				<![CDATA[0]]>
+			</parameter>
+			<parameter name="epsg_from">
+				<![CDATA[4283]]>
+			</parameter>
+			<parameter name="geometry_type">
+				<![CDATA[-1]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="DM_SQliteCalculator"/>
+			<UUID value="33271504"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="attribute">
+				<![CDATA[grid.avgelev]]>
+			</parameter>
+			<parameter name="attribute_type">
+				<![CDATA[DOUBLE]]>
+			</parameter>
+			<parameter name="query">
+				<![CDATA[UPDATE grid SET avgelev = CASE 
+WHEN  blockid = 381  
+THEN  1.1
+WHEN  blockid = 380  
+THEN  0.85
+WHEN  blockid = 379  
+THEN  0.79
+WHEN  blockid = 378  
+THEN  0.78
+WHEN  blockid = 62  
+THEN  0.1
+WHEN  blockid = 86  
+THEN  0.2
+WHEN  blockid = 87  
+THEN  0.3
+WHEN  blockid = 88  
+THEN  0.4
+WHEN  blockid = 112  
+THEN  0.5
+WHEN  blockid = 135  
+THEN  0.6
+WHEN  blockid = 135  
+THEN  0.6
+WHEN  blockid = 89  
+THEN  0.6
+WHEN  blockid = 360  
+THEN  1.67
+WHEN  blockid = 359  
+THEN  1.34
+WHEN  blockid = 358  
+THEN  1.33
+
+WHEN  blockid = 314  
+THEN  1.36
+WHEN  blockid = 313  
+THEN  1.36
+
+WHEN  blockid = 291
+THEN  1.37
+
+WHEN  blockid = 292  
+THEN  1.37
+WHEN  blockid = 293  
+THEN  1.38
+WHEN  blockid = 268  
+THEN  1.39
+
+WHEN  blockid = 269  
+THEN  1.39
+WHEN  blockid = 270  
+THEN  2
+WHEN  blockid = 247  
+THEN  1.4
+WHEN  blockid = 243  
+THEN  4
+WHEN  blockid = 248 
+THEN  1.5
+WHEN  blockid = 179 
+THEN  1.7
+WHEN  blockid = 156 
+THEN  1.8
+WHEN  blockid = 157 
+THEN  1.62
+WHEN  blockid = 180 
+THEN  2
+WHEN  blockid = 130 
+THEN  4.8
+WHEN  blockid = 153 
+THEN  4.8
+
+ELSE  avgelev
+END]]>
+			</parameter>
+			<parameter name="variables">
+				<![CDATA[]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="GDALClusterNetwork"/>
+			<UUID value="35662496"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="view_name">
+				<![CDATA[flow]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="DM_SQliteCalculator"/>
+			<UUID value="34065696"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="attribute">
+				<![CDATA[grid.basinid]]>
+			</parameter>
+			<parameter name="attribute_type">
+				<![CDATA[INT]]>
+			</parameter>
+			<parameter name="query">
+				<![CDATA[UPDATE grid SET basinid= (SELECT cluster_id from flow WHERE grid.node_id = flow.start_id OR grid.node_id = flow.end_id)]]>
+			</parameter>
+			<parameter name="variables">
+				<![CDATA[]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="GDALSpatialLinking"/>
+			<UUID value="34970624"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="leadingViewName">
+				<![CDATA[node]]>
+			</parameter>
+			<parameter name="linkViewName">
+				<![CDATA[grid]]>
+			</parameter>
+			<parameter name="withCentroid">
+				<![CDATA[1]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="GDALMergeFaces"/>
+			<UUID value="34982608"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="view_name">
+				<![CDATA[grid]]>
+			</parameter>
+			<parameter name="combined_view_name">
+				<![CDATA[basin]]>
+			</parameter>
+			<parameter name="attribute_name">
+				<![CDATA[basinid]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="GDALSpatialLinking"/>
+			<UUID value="31147696"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="leadingViewName">
+				<![CDATA[basin]]>
+			</parameter>
+			<parameter name="linkViewName">
+				<![CDATA[grid]]>
+			</parameter>
+			<parameter name="withCentroid">
+				<![CDATA[1]]>
+			</parameter>
+		</Node>
+		<Node>
+			<ClassName value="DM_SQliteCalculator"/>
+			<UUID value="34056528"/>
+			<Name value=""/>
+			<GroupUUID value="0"/>
+			<DebugMode value="0"/>
+			<parameter name="attribute">
+				<![CDATA[basin.basin_id]]>
+			</parameter>
+			<parameter name="attribute_type">
+				<![CDATA[INT]]>
+			</parameter>
+			<parameter name="query">
+				<![CDATA[UPDATE basin SET basin_id= (SELECT basinid from grid WHERE grid.basin_id = basin.ogc_fid)]]>
+			</parameter>
+			<parameter name="variables">
+				<![CDATA[]]>
+			</parameter>
+		</Node>
+	</Nodes>
+	<Links>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "33190496"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "32767856"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "36676064"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "33190496"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "33233840"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "33775232"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "32767856"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "33233840"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "33210320"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "31403744"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "32752064"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "33210320"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "33271504"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "32752064"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "34900816"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "33271504"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "33775232"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "34900816"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "35662496"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "36676064"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "34970624"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "35662496"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "34065696"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "34970624"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "34982608"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "34065696"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "31147696"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "34982608"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+		<Link>
+			<BackLink value = "0"/>
+			<InPort>
+				<UUID value = "34056528"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</InPort>
+			<OutPort>
+				<UUID value = "31147696"/>
+				<PortName value = "city"/>
+				<PortType value = "0"/>
+			</OutPort>
+		</Link>
+	</Links>
+</DynaMindCore>
+<DynaMindGUI>
+	<GUI_Nodes>
+		<GUI_Node>
+			<GUI_UUID value="33210320"/>
+			<GUI_PosX value="778.624"/>
+			<GUI_PosY value="70.3289"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="34900816"/>
+			<GUI_PosX value="744.506"/>
+			<GUI_PosY value="277.993"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="35004112"/>
+			<GUI_PosX value="1912.03"/>
+			<GUI_PosY value="-1.50402e-29"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="32752064"/>
+			<GUI_PosX value="1073.35"/>
+			<GUI_PosY value="79.5134"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="32437888"/>
+			<GUI_PosX value="2923.51"/>
+			<GUI_PosY value="35.27"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="33775232"/>
+			<GUI_PosX value="1062.98"/>
+			<GUI_PosY value="289.868"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="33233840"/>
+			<GUI_PosX value="1378.63"/>
+			<GUI_PosY value="286.368"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="36676064"/>
+			<GUI_PosX value="1476.73"/>
+			<GUI_PosY value="614.424"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="33190496"/>
+			<GUI_PosX value="750.861"/>
+			<GUI_PosY value="611.679"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="32767856"/>
+			<GUI_PosX value="1655.11"/>
+			<GUI_PosY value="278.133"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="34289088"/>
+			<GUI_PosX value="2477.97"/>
+			<GUI_PosY value="2.89151"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="31403744"/>
+			<GUI_PosX value="-8.31571e-07"/>
+			<GUI_PosY value="60.3187"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="33271504"/>
+			<GUI_PosX value="1393.54"/>
+			<GUI_PosY value="83.6852"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="35662496"/>
+			<GUI_PosX value="1723.17"/>
+			<GUI_PosY value="615.677"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="34065696"/>
+			<GUI_PosX value="2256.77"/>
+			<GUI_PosY value="621.049"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="34970624"/>
+			<GUI_PosX value="2027.54"/>
+			<GUI_PosY value="614.152"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="34982608"/>
+			<GUI_PosX value="3231.56"/>
+			<GUI_PosY value="625.358"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="31147696"/>
+			<GUI_PosX value="3481.53"/>
+			<GUI_PosY value="624.017"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+		<GUI_Node>
+			<GUI_UUID value="34056528"/>
+			<GUI_PosX value="2786.48"/>
+			<GUI_PosY value="797.284"/>
+			<GUI_Minimized value="0"/>
+		</GUI_Node>
+	</GUI_Nodes>
+</DynaMindGUI>
+</DynaMind>
